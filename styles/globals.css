@@ -123,6 +123,41 @@ main {
   outline-offset: 1px;
 }
 
+.control-group select {
+  width: 100%;
+  padding: .5rem .75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  cursor: pointer;
+}
+
+.control-group select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Case à cocher (options d'impression) */
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .8rem;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-row input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
 /* Difficulty badges */
 .diff-labels {
   display: flex;
@@ -190,6 +225,12 @@ main {
 }
 .btn-success:hover:not(:disabled) { background: #15803d; }
 
+.btn-small {
+  width: auto;
+  padding: .3rem .7rem;
+  font-size: .75rem;
+}
+
 /* Progress indicator */
 .progress-bar {
   height: 4px;
@@ -235,6 +276,17 @@ main {
 .empty-state h2 { font-size: 1.2rem; font-weight: 600; }
 .empty-state p  { font-size: .9rem; max-width: 280px; line-height: 1.5; }
 
+/* Message d'erreur de génération */
+.error-banner {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+  border-radius: var(--radius);
+  padding: .85rem 1.25rem;
+  font-size: .88rem;
+  line-height: 1.5;
+}
+
 /* ─── Crossword grid card ───────────────────────────────────── */
 .crossword-card {
   background: var(--surface);
@@ -269,6 +321,12 @@ main {
 .crossword-card-header .meta {
   font-size: .75rem;
   color: var(--muted);
+}
+
+.crossword-card-actions {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
 }
 
 /* ─── Grid layout ───────────────────────────────────────────── */
@@ -333,6 +391,47 @@ main {
   color: var(--text);
   pointer-events: none;
   padding-top: 6px; /* offset for number */
+}
+
+/* Les lettres sont masquées à l'écran par défaut — c'est un jeu !
+   Le bouton « Voir les solutions » les révèle. */
+.content .cell-letter { visibility: hidden; }
+.content.show-solutions .cell-letter { visibility: visible; }
+
+/* ─── Feuille de solutions ──────────────────────────────────── */
+/* Visible uniquement à l'impression (voir @media print) */
+.solutions-print { display: none; }
+
+.solutions-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-bottom: 2px solid #000;
+  padding-bottom: .4rem;
+  margin-bottom: 1rem;
+}
+
+.solutions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.solution-item h3 {
+  font-size: .8rem;
+  font-weight: 700;
+  margin-bottom: .35rem;
+}
+
+.solution-grid td {
+  width:  16px;
+  height: 16px;
+}
+
+.solution-grid .cell-letter {
+  font-size: 9px;
+  padding-top: 0;
+  visibility: visible;
 }
 
 /* ─── Clues ─────────────────────────────────────────────────── */
@@ -423,7 +522,7 @@ footer {
 
 /* ─── Print styles ──────────────────────────────────────────── */
 @media print {
-  .sidebar, header, footer, .btn { display: none !important; }
+  .sidebar, header, footer, .btn, .toast, .error-banner { display: none !important; }
 
   main { display: block; }
   .content { padding: 0; overflow: visible; }
@@ -462,6 +561,25 @@ footer {
   .cell-letter { display: none; } /* cacher les lettres — c'est un jeu ! */
 
   .clue-item { font-size: .7rem; }
+
+  /* Feuille de solutions : imprimée à part, sur ses propres pages */
+  .solutions-print {
+    display: block;
+    page-break-before: always;
+    break-before: page;
+    padding: 1cm;
+  }
+
+  .solutions-print .cell-letter {
+    display: flex;
+    visibility: visible;
+  }
+
+  .solution-grid td {
+    width:  16px;
+    height: 16px;
+    border: 1px solid #000;
+  }
 
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
