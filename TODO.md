@@ -15,15 +15,15 @@
 - [x] Améliorer l'algorithme : s'assurer que la grille est connexe (toutes les lettres liées)
 - [x] Ajouter des thèmes (animaux, géographie, sciences…)
 - [x] Sauvegarder les préférences (difficulté, nb grilles) dans `localStorage`
-- [ ] Tests d'intégration avec Playwright (générer → afficher → imprimer)
+- [x] Tests d'intégration avec Playwright (générer → afficher → imprimer)
 
 ## 🟢 Nice to have
 
-- [ ] Mode sombre
-- [ ] Grille interactive (remplissage dans le navigateur, vérification)
-- [ ] Partage de grille par URL (état encodé en query string)
-- [ ] Génération de grilles en anglais (banque de mots EN)
-- [ ] Personnalisation : taille de cellule, police, couleurs
-- [ ] Export SVG en plus du PDF
-- [ ] Statistiques (nb de grilles générées, mots les plus utilisés)
-- [ ] PWA (Progressive Web App) pour installation sur mobile
+- [x] Mode sombre
+- [x] Grille interactive (remplissage dans le navigateur, vérification)
+- [x] Partage de grille par URL (état encodé en query string)
+- [x] Génération de grilles en anglais (banque de mots EN)
+- [x] Personnalisation : taille de cellule, police, couleurs
+- [x] Export SVG en plus du PDF
+- [x] Statistiques (nb de grilles générées, mots les plus utilisés)
+- [x] PWA (Progressive Web App) pour installation sur mobile
