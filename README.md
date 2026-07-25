@@ -16,6 +16,14 @@ le premier chargement. Exportez de 1 à 99 grilles directement en PDF pour impre
 | Niveaux 1 à 10 | De « Très facile » (mots courants, grille 10×10) à « Expert » (15×15, vocabulaire avancé) |
 | 1 à 99 grilles | Toutes générées en une seule session, barre de progression |
 | Export PDF | Via `window.print()` + CSS `@media print` — aucune dépendance |
+| Export SVG | Un fichier vectoriel par grille, avec ou sans solutions |
+| Deux langues | Banques de mots française (500+) et anglaise (170+) |
+| Mode interactif | Remplissage dans le navigateur avec vérification des lettres |
+| Partage par URL | Graine encodée dans le lien : même lien, même grille |
+| Mode sombre | Bascule manuelle, suit le réglage système par défaut |
+| Personnalisation | Taille des cases, police des lettres, couleur d'accent |
+| Statistiques | Grilles générées et mots les plus utilisés (localStorage) |
+| PWA | Installable sur mobile, fonctionne hors ligne (service worker) |
 | Hors-ligne | Fonctionne sans connexion après le premier chargement de la page |
 | Aucune dépendance UI | CSS natif, pas de framework de style externe |
 
@@ -27,12 +35,21 @@ le premier chargement. Exportez de 1 à 99 grilles directement en PDF pour impre
 motscroises/
 ├── lib/
 │   ├── crossword.js    # Algorithme de génération (placement glouton + scoring d'intersections)
-│   └── words.js        # Banque de 500+ mots français + indices, niveaux 1 à 9, thèmes
+│   ├── words.js        # Banque de 500+ mots français + indices, niveaux 1 à 9, thèmes
+│   ├── words-en.js     # Banque de mots anglais (mêmes thèmes)
+│   ├── random.js       # PRNG déterministe (partage de grille par URL)
+│   ├── svg.js          # Export SVG des grilles
+│   └── stats.js        # Statistiques d'utilisation (localStorage)
 ├── pages/
-│   ├── _app.js         # Wrapper Next.js (import CSS global)
+│   ├── _app.js         # Wrapper Next.js (CSS global + service worker PWA)
 │   └── index.js        # Page unique — UI complète (React)
+├── public/
+│   ├── manifest.json   # Manifeste PWA
+│   └── sw.js           # Service worker (cache hors ligne)
 ├── styles/
-│   └── globals.css     # Styles + @media print pour export PDF
+│   └── globals.css     # Styles + mode sombre + @media print pour export PDF
+├── tests/              # Tests unitaires (vitest)
+├── e2e/                # Tests d'intégration (Playwright)
 ├── .github/
 │   ├── dependabot.yml
 │   └── workflows/      # CI, release, PR check, security scan
