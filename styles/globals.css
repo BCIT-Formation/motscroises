@@ -543,6 +543,8 @@ footer {
 }
 
 /* ─── Print styles ──────────────────────────────────────────── */
+/* L'« export PDF » repose entièrement sur ce bloc : window.print() + ces
+   règles remplacent une librairie PDF (ADR-002). */
 @media print {
   /* Toujours imprimer en clair, même en mode sombre */
   :root, :root[data-theme="dark"] {

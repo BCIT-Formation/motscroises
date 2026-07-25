@@ -329,6 +329,8 @@ export default function Home() {
   const nextGridId  = useRef(1)
 
   // ─── Préférences persistées dans localStorage ────────────────────────────────
+  // setState au montage : lecture de localStorage impossible côté serveur
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     let savedDark = null
     try {
@@ -354,6 +356,7 @@ export default function Home() {
     setDark(savedDark !== null ? savedDark : window.matchMedia('(prefers-color-scheme: dark)').matches)
     prefsLoaded.current = true
   }, [])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!prefsLoaded.current) return
@@ -452,6 +455,8 @@ export default function Home() {
   }, [difficulty, gridCount, theme, isGenerating, generateOne, showToast])
 
   // ─── Charger une grille partagée depuis l'URL (?grille=…) ────────────────────
+  // setState au montage : les paramètres d'URL ne sont lisibles que côté client
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const param = new URLSearchParams(window.location.search).get(SHARE_PARAM)
     if (!param) return
@@ -465,6 +470,7 @@ export default function Home() {
       setError('Le lien de grille partagée est invalide ou corrompu.')
     }
   }, [showToast])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // ─── Partager une grille par URL ─────────────────────────────────────────────
   const handleShare = useCallback(async (index) => {
