@@ -97,11 +97,19 @@ souhaitez ajouter des fonctionnalités (analytics, etc.).
 ## Utilisation
 
 1. **Choisir la difficulté** (1 = très facile → 10 = expert) via le curseur
-2. **Choisir le nombre de grilles** (1 à 99)
+2. **Choisir un thème** (tous, animaux, géographie, sciences…) et le **nombre de grilles** (1 à 99)
 3. Cliquer sur **Générer** — les grilles apparaissent instantanément
-4. Cliquer sur **Exporter en PDF** — ouvre la boîte d'impression du navigateur
+4. **Jouer directement dans le navigateur** : saisir les lettres dans les cases,
+   puis **Vérifier** (vert = correct, rouge = erreur) ou **Effacer**
+5. Par grille : **Voir la solution** (toggle), **Régénérer** (sans toucher aux autres),
+   **Partager** (lien copié, grille encodée dans l'URL) ou télécharger en **SVG**
+6. Cliquer sur **Exporter en PDF** — ouvre la boîte d'impression du navigateur
+   (les solutions s'impriment séparément via **Imprimer les solutions**)
 
-Les lettres sont **masquées à l'impression** pour rendre les grilles jouables.
+Les lettres sont **masquées à l'écran et à l'impression** pour rendre les grilles jouables.
+Les préférences (difficulté, thème, nombre de grilles, mode sombre) sont conservées dans
+`localStorage`. L'application est installable en **PWA** et fonctionne hors-ligne
+(service worker). Un **mode sombre** est disponible via le bouton de l'en-tête.
 
 ---
 
@@ -113,7 +121,8 @@ Les lettres sont **masquées à l'impression** pour rendre les grilles jouables.
 4. Chaque mot suivant cherche toutes les intersections possibles avec les mots existants
    et choisit le placement maximisant les croisements.
 5. Les cases sont numérotées selon les règles standard des mots croisés.
-6. Si moins de 3 mots sont placés, un nouveau tirage de mots est tenté (jusqu'à 5 fois),
+6. Si moins de 3 mots sont placés ou si la grille n'est pas connexe (vérifiée par
+   parcours en largeur), un nouveau tirage de mots est tenté (jusqu'à 5 fois),
    puis un message d'erreur est affiché plutôt qu'une grille inutilisable.
 
 ---
@@ -149,10 +158,9 @@ Dans **Settings → Branches → Branch protection rules** pour `main` :
 Voir [TODO.md](TODO.md) pour la liste complète, priorisée en 3 niveaux.
 
 Points prioritaires :
-1. Re-génération d'une seule grille sans tout regénérer
-2. Mode « voir la solution » dans le navigateur (toggle)
-3. Mode interactif (saisie dans le navigateur)
-4. Tests d'intégration Playwright
+1. Génération de grilles en anglais (banque de mots EN)
+2. Personnalisation : taille de cellule, police, couleurs
+3. Statistiques (nb de grilles générées, mots les plus utilisés)
 
 ---
 
