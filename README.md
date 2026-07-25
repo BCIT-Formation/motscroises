@@ -1,8 +1,7 @@
 # Mots Croisés — Générateur de grilles
 
-[![CI](https://github.com/BardinConsulting/motscroises/actions/workflows/ci.yml/badge.svg)](https://github.com/BardinConsulting/motscroises/actions/workflows/ci.yml)
+[![CI](https://github.com/BCIT-Formation/motscroises/actions/workflows/ci.yml/badge.svg)](https://github.com/BCIT-Formation/motscroises/actions/workflows/ci.yml)
 [![Deploy](https://img.shields.io/badge/Vercel-deployed-brightgreen?logo=vercel)](https://motscroises.vercel.app)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Générateur de grilles de mots croisés **100 % côté client**, sans serveur, sans internet après
 le premier chargement. Exportez de 1 à 99 grilles directement en PDF pour impression.
@@ -27,8 +26,8 @@ le premier chargement. Exportez de 1 à 99 grilles directement en PDF pour impre
 ```
 motscroises/
 ├── lib/
-│   ├── crossword.js    # Algorithme de génération (backtracking + scoring)
-│   └── words.js        # Banque de ~150 mots français + indices, niveaux 1-10
+│   ├── crossword.js    # Algorithme de génération (placement glouton + scoring d'intersections)
+│   └── words.js        # Banque de 167 mots français + indices, niveaux 1 à 9
 ├── pages/
 │   ├── _app.js         # Wrapper Next.js (import CSS global)
 │   └── index.js        # Page unique — UI complète (React)
@@ -37,16 +36,18 @@ motscroises/
 ├── .github/
 │   ├── dependabot.yml
 │   └── workflows/      # CI, release, PR check, security scan
+├── eslint.config.mjs   # Config ESLint 9 (flat config, eslint-config-next)
 ├── next.config.js      # output: 'export' (site statique)
-└── package.json        # Next 14 + React 18, 2 dépendances de prod
+├── vercel.json         # Config Vercel (build + dossier out/)
+└── package.json        # Next 16 + React 19, 3 dépendances de prod
 ```
 
 ---
 
 ## Prérequis
 
-- **Node.js** ≥ 18.x
-- **npm** ≥ 9.x (ou pnpm / yarn)
+- **Node.js** ≥ 20.x (version utilisée en CI)
+- **npm** ≥ 10.x (ou pnpm / yarn)
 
 ---
 
@@ -54,7 +55,7 @@ motscroises/
 
 ```bash
 # 1. Cloner le dépôt
-git clone https://github.com/BardinConsulting/motscroises.git
+git clone https://github.com/BCIT-Formation/motscroises.git
 cd motscroises
 
 # 2. Installer les dépendances
@@ -64,11 +65,14 @@ npm install
 npm run dev
 # → http://localhost:3000
 
-# 4. Build de production (export statique)
+# 4. Linter
+npm run lint
+
+# 5. Build de production (export statique)
 npm run build
 # → dossier out/
 
-# 5. Prévisualiser le build
+# 6. Prévisualiser le build
 npx serve out
 ```
 
@@ -77,7 +81,7 @@ npx serve out
 ## Déploiement Vercel
 
 ```bash
-# Déploiement automatique via GitHub Actions (push sur main)
+# Déploiement automatique via GitHub Actions lors d'une release (workflow release.yml)
 # Ou manuellement :
 npx vercel --prod
 ```
