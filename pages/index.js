@@ -298,7 +298,7 @@ export default function Home() {
                   puis cliquez sur <strong>Générer</strong>.
                 </p>
                 <p style={{ marginTop: '-.25rem' }}>
-                  Exportez ensuite en PDF pour l'impression.
+                  Exportez ensuite en PDF pour l&apos;impression.
                 </p>
               </div>
             ) : (
