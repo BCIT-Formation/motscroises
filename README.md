@@ -97,11 +97,14 @@ souhaitez ajouter des fonctionnalités (analytics, etc.).
 ## Utilisation
 
 1. **Choisir la difficulté** (1 = très facile → 10 = expert) via le curseur
-2. **Choisir le nombre de grilles** (1 à 99)
+2. **Choisir un thème** (tous, animaux, géographie, sciences…) et le **nombre de grilles** (1 à 99)
 3. Cliquer sur **Générer** — les grilles apparaissent instantanément
-4. Cliquer sur **Exporter en PDF** — ouvre la boîte d'impression du navigateur
+4. Par grille : **Voir la solution** (toggle à l'écran) ou **Régénérer** (sans toucher aux autres)
+5. Cliquer sur **Exporter en PDF** — ouvre la boîte d'impression du navigateur
+   (les solutions s'impriment séparément via **Imprimer les solutions**)
 
-Les lettres sont **masquées à l'impression** pour rendre les grilles jouables.
+Les lettres sont **masquées à l'écran et à l'impression** pour rendre les grilles jouables.
+Les préférences (difficulté, thème, nombre de grilles) sont conservées dans `localStorage`.
 
 ---
 
@@ -113,7 +116,8 @@ Les lettres sont **masquées à l'impression** pour rendre les grilles jouables.
 4. Chaque mot suivant cherche toutes les intersections possibles avec les mots existants
    et choisit le placement maximisant les croisements.
 5. Les cases sont numérotées selon les règles standard des mots croisés.
-6. Si moins de 3 mots sont placés, un nouveau tirage de mots est tenté (jusqu'à 5 fois),
+6. Si moins de 3 mots sont placés ou si la grille n'est pas connexe (vérifiée par
+   parcours en largeur), un nouveau tirage de mots est tenté (jusqu'à 5 fois),
    puis un message d'erreur est affiché plutôt qu'une grille inutilisable.
 
 ---
@@ -149,10 +153,10 @@ Dans **Settings → Branches → Branch protection rules** pour `main` :
 Voir [TODO.md](TODO.md) pour la liste complète, priorisée en 3 niveaux.
 
 Points prioritaires :
-1. Re-génération d'une seule grille sans tout regénérer
-2. Mode « voir la solution » dans le navigateur (toggle)
-3. Mode interactif (saisie dans le navigateur)
-4. Tests d'intégration Playwright
+1. Mode interactif (saisie dans le navigateur)
+2. Tests d'intégration Playwright
+3. Mode sombre
+4. Partage de grille par URL
 
 ---
 
