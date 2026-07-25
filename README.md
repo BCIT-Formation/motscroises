@@ -27,7 +27,7 @@ le premier chargement. Exportez de 1 à 99 grilles directement en PDF pour impre
 motscroises/
 ├── lib/
 │   ├── crossword.js    # Algorithme de génération (placement glouton + scoring d'intersections)
-│   └── words.js        # Banque de 167 mots français + indices, niveaux 1 à 9
+│   └── words.js        # Banque de 500+ mots français + indices, niveaux 1 à 9, thèmes
 ├── pages/
 │   ├── _app.js         # Wrapper Next.js (import CSS global)
 │   └── index.js        # Page unique — UI complète (React)
