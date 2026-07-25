@@ -5,13 +5,15 @@
 
 import Head from 'next/head'
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { generateCrossword, getBoundingBox } from '../lib/crossword'
-import { getWordsForDifficulty, getGridSize, getWordCount } from '../lib/words'
+import { generateCrossword, getBoundingBox, isGridConnected } from '../lib/crossword'
+import { getWordsForDifficulty, getGridSize, getWordCount, THEMES } from '../lib/words'
 
 // Une grille avec moins de 3 mots placés est considérée comme ratée.
 const MIN_PLACED_WORDS = 3
 // Nombre de tirages de mots tentés avant d'abandonner une grille.
 const MAX_ATTEMPTS_PER_GRID = 5
+// Clé localStorage des préférences (difficulté, nb grilles, thème).
+const PREFS_KEY = 'motscroises:prefs'
 
 // ─── Labels de difficulté ──────────────────────────────────────────────────────
 const DIFF_LABELS = {
@@ -36,23 +38,54 @@ const DIFF_DESC = {
 }
 
 // ─── Composant Grille ──────────────────────────────────────────────────────────
-function CrosswordGrid({ data, index }) {
+function CrosswordGrid({ data, index, onRegenerate }) {
   const { grid, numbers, acrossClues, downClues, size } = data
   const { minR, maxR, minC, maxC } = getBoundingBox(grid)
+  // Les lettres sont masquées à l'écran par défaut : la grille est jouable.
+  const [showSolution, setShowSolution] = useState(false)
 
   return (
     <div className="crossword-card">
       <div className="crossword-card-header">
         <h2>Grille n°{index + 1}</h2>
+        <div className="card-actions">
+          <button
+            type="button"
+            className="btn btn-small"
+            onClick={() => setShowSolution((s) => !s)}
+            aria-pressed={showSolution}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+              {showSolution && <line x1="3" y1="21" x2="21" y2="3"/>}
+            </svg>
+            {showSolution ? 'Masquer la solution' : 'Voir la solution'}
+          </button>
+          <button
+            type="button"
+            className="btn btn-small"
+            onClick={() => onRegenerate(index)}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M23 4v6h-6M1 20v-6h6"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+            Régénérer
+          </button>
+        </div>
         <span className="meta">
-          Difficulté {data.difficulty} · {data.wordCount} mots · {size}×{size}
+          Difficulté {data.difficulty} · {THEMES[data.theme]?.label ?? 'Tous les thèmes'} · {data.wordCount} mots · {size}×{size}
         </span>
       </div>
 
       <div className="grid-and-clues">
         {/* Tableau de la grille */}
         <div className="grid-wrapper">
-          <table className="crossword-grid" aria-label={`Grille de mots croisés ${index + 1}`}>
+          <table
+            className={`crossword-grid${showSolution ? '' : ' letters-masked'}`}
+            aria-label={`Grille de mots croisés ${index + 1}`}
+          >
             <tbody>
               {Array.from({ length: maxR - minR + 1 }, (_, ri) => {
                 const r = ri + minR
@@ -165,6 +198,7 @@ function SolutionGrid({ data, index }) {
 export default function Home() {
   const [difficulty,   setDifficulty]   = useState(5)
   const [gridCount,    setGridCount]    = useState(1)
+  const [theme,        setTheme]        = useState('tous')
   const [grids,        setGrids]        = useState([])
   const [isGenerating, setIsGenerating] = useState(false)
   const [toast,        setToast]        = useState(null)
@@ -172,11 +206,69 @@ export default function Home() {
   const [error,        setError]        = useState(null)
   const [printTarget,  setPrintTarget]  = useState('grids')
   const contentRef = useRef(null)
+  const prefsLoaded = useRef(false)
+  const nextGridId  = useRef(1)
+
+  // ─── Préférences persistées dans localStorage ────────────────────────────────
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(PREFS_KEY) || 'null')
+      if (saved) {
+        if (Number.isInteger(saved.difficulty) && saved.difficulty >= 1 && saved.difficulty <= 10) {
+          setDifficulty(saved.difficulty)
+        }
+        if (Number.isInteger(saved.gridCount) && saved.gridCount >= 1 && saved.gridCount <= 99) {
+          setGridCount(saved.gridCount)
+        }
+        if (typeof saved.theme === 'string' && THEMES[saved.theme]) {
+          setTheme(saved.theme)
+        }
+      }
+    } catch {
+      // Stockage indisponible ou corrompu : ignorer, les défauts s'appliquent
+    }
+    prefsLoaded.current = true
+  }, [])
+
+  useEffect(() => {
+    if (!prefsLoaded.current) return
+    try {
+      localStorage.setItem(PREFS_KEY, JSON.stringify({ difficulty, gridCount, theme }))
+    } catch {
+      // Stockage indisponible (navigation privée…) : ignorer
+    }
+  }, [difficulty, gridCount, theme])
 
   // ─── Afficher un message temporaire ─────────────────────────────────────────
   const showToast = useCallback((msg) => {
     setToast(msg)
     setTimeout(() => setToast(null), 3000)
+  }, [])
+
+  // ─── Générer une seule grille (avec retentatives) ────────────────────────────
+  const generateOne = useCallback((diff, th) => {
+    const size      = getGridSize(diff)
+    const wordCount = getWordCount(diff)
+
+    // Retenter avec un nouveau tirage de mots si trop peu sont placés
+    // ou si la grille n'est pas connexe
+    for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_GRID; attempt++) {
+      const wordList  = getWordsForDifficulty(diff, wordCount + 5, th) // +5 pour marge
+      const candidate = generateCrossword(wordList, size)
+      if (
+        candidate.placedWords.length >= MIN_PLACED_WORDS &&
+        isGridConnected(candidate.grid)
+      ) {
+        return {
+          ...candidate,
+          id: nextGridId.current++,
+          difficulty: diff,
+          theme: th,
+          wordCount: candidate.placedWords.length,
+        }
+      }
+    }
+    return null
   }, [])
 
   // ─── Générer les grilles ─────────────────────────────────────────────────────
@@ -195,26 +287,9 @@ export default function Home() {
     for (let i = 0; i < count; i++) {
       await new Promise((resolve) => setTimeout(resolve, 0))
 
-      const size      = getGridSize(difficulty)
-      const wordCount = getWordCount(difficulty)
-
-      // Retenter avec un nouveau tirage de mots si trop peu sont placés
-      let result = null
-      for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_GRID; attempt++) {
-        const wordList  = getWordsForDifficulty(difficulty, wordCount + 5) // +5 pour marge
-        const candidate = generateCrossword(wordList, size)
-        if (candidate.placedWords.length >= MIN_PLACED_WORDS) {
-          result = candidate
-          break
-        }
-      }
-
+      const result = generateOne(difficulty, theme)
       if (result) {
-        results.push({
-          ...result,
-          difficulty,
-          wordCount: result.placedWords.length,
-        })
+        results.push(result)
       } else {
         failed++
       }
@@ -235,7 +310,21 @@ export default function Home() {
     if (results.length > 0) {
       showToast(`${results.length} grille${results.length > 1 ? 's' : ''} générée${results.length > 1 ? 's' : ''} !`)
     }
-  }, [difficulty, gridCount, isGenerating, showToast])
+  }, [difficulty, gridCount, theme, isGenerating, generateOne, showToast])
+
+  // ─── Régénérer une seule grille sans toucher aux autres ─────────────────────
+  const handleRegenerate = useCallback((index) => {
+    const current = grids[index]
+    if (!current) return
+
+    const fresh = generateOne(current.difficulty, current.theme)
+    if (!fresh) {
+      showToast(`Impossible de régénérer la grille n°${index + 1}. Réessayez.`)
+      return
+    }
+    setGrids((prev) => prev.map((g, i) => (i === index ? fresh : g)))
+    showToast(`Grille n°${index + 1} régénérée !`)
+  }, [grids, generateOne, showToast])
 
   // ─── Export PDF via impression navigateur ────────────────────────────────────
   const handlePrint = useCallback(() => {
@@ -314,6 +403,21 @@ export default function Home() {
                 {DIFF_LABELS[difficulty]}
               </div>
               <div className="stats">{DIFF_DESC[difficulty]}</div>
+            </div>
+
+            {/* Thème */}
+            <div className="control-group">
+              <label htmlFor="theme-select">Thème</label>
+              <select
+                id="theme-select"
+                value={theme}
+                onChange={(e) => setTheme(e.target.value)}
+              >
+                {Object.entries(THEMES).map(([key, t]) => (
+                  <option key={key} value={key}>{t.label}</option>
+                ))}
+              </select>
+              <div className="stats">Vocabulaire limité au thème choisi</div>
             </div>
 
             {/* Nombre de grilles */}
@@ -429,13 +533,13 @@ export default function Home() {
             ) : (
               <>
                 {grids.map((g, i) => (
-                  <CrosswordGrid key={i} data={g} index={i} />
+                  <CrosswordGrid key={g.id} data={g} index={i} onRegenerate={handleRegenerate} />
                 ))}
 
                 {/* Solutions — rendues uniquement pour l'impression séparée */}
                 <section className="solutions-section" aria-hidden="true">
                   {grids.map((g, i) => (
-                    <SolutionGrid key={i} data={g} index={i} />
+                    <SolutionGrid key={g.id} data={g} index={i} />
                   ))}
                 </section>
               </>

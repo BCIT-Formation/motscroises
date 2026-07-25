@@ -123,6 +123,23 @@ main {
   outline-offset: 1px;
 }
 
+.control-group select {
+  width: 100%;
+  padding: .5rem .75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  cursor: pointer;
+}
+
+.control-group select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 /* Difficulty badges */
 .diff-labels {
   display: flex;
@@ -275,10 +292,28 @@ main {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  gap: .75rem;
+  flex-wrap: wrap;
   margin-bottom: 1.25rem;
   border-bottom: 2px solid var(--accent);
   padding-bottom: .6rem;
 }
+
+/* Actions par grille (voir solution, régénérer) */
+.card-actions {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+}
+
+.btn-small {
+  width: auto;
+  padding: .3rem .7rem;
+  font-size: .75rem;
+  background: #e5e7eb;
+  color: var(--text);
+}
+.btn-small:hover:not(:disabled) { background: #d1d5db; }
 
 .crossword-card-header h2 {
   font-size: 1rem;
@@ -338,6 +373,12 @@ main {
   color: #333;
   pointer-events: none;
   font-family: monospace;
+}
+
+/* Lettres masquées à l'écran (grille jouable) — le toggle
+   « Voir la solution » retire la classe pour révéler les lettres. */
+.crossword-grid.letters-masked .cell-letter {
+  visibility: hidden;
 }
 
 /* Cell letter (centered) */
@@ -484,6 +525,7 @@ footer {
   .clue-item { font-size: .7rem; }
 
   .error-banner { display: none !important; }
+  .card-actions { display: none !important; }
 
   /* Mode "solutions" : imprimer uniquement les grilles résolues */
   .app[data-print="solutions"] .crossword-card:not(.solution-card) { display: none; }
