@@ -26,6 +26,11 @@ Thumbs.db
 .vscode/settings.json
 *.log
 
+# ── Playwright ────────────────────────────────────────────────
+test-results/
+playwright-report/
+blob-report/
+
 # ── Misc ──────────────────────────────────────────────────────
 npm-debug.log*
 yarn-debug.log*
