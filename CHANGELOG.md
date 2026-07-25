@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## 1.0.0 (2026-07-25)
+
+
+### Features
+
+* initial crossword generator app ([dcaad4d](https://github.com/BCIT-Formation/motscroises/commit/dcaad4d376cac63c640fab21d163e75e7a7ee923))
+
+
+### Bug Fixes
+
+* add lockfile and migrate to ESLint 9 flat config for Next 16 ([bda117a](https://github.com/BCIT-Formation/motscroises/commit/bda117aa7ae802e438e6b33a2661aa3dcce282c9))
+
 ## [0.1.0] — 2026-02-26
 
 ### Added
