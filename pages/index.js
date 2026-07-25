@@ -136,15 +136,11 @@ function CrosswordGrid({ data, index, interactive, onRegenerate }) {
   const { grid, numbers, acrossClues, downClues, size } = data
   const { minR, maxR, minC, maxC } = getBoundingBox(grid)
 
-  // Saisie interactive : lettres entrées par l'utilisateur, résultat de vérification
+  // Saisie interactive : lettres entrées par l'utilisateur, résultat de vérification.
+  // La carte est montée avec une `key` liée à la graine de la grille : toute
+  // régénération remonte le composant et réinitialise donc la saisie.
   const [entries, setEntries] = useState({})
   const [checkResult, setCheckResult] = useState(null)
-
-  // Réinitialiser la saisie quand la grille change (régénération)
-  useEffect(() => {
-    setEntries({})
-    setCheckResult(null)
-  }, [data])
 
   const handleInput = (r, c) => (e) => {
     const letter = e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(-1)
@@ -403,6 +399,10 @@ export default function Home() {
   }, [showToast])
 
   // ─── Charger les préférences, appliquer une éventuelle URL de partage ───────
+  // setState au montage est nécessaire ici : l'export statique impose que le
+  // premier rendu corresponde au HTML pré-généré, puis on synchronise l'état
+  // depuis localStorage et l'URL (systèmes externes) une fois côté client.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const prefs = loadPrefs()
     if (prefs) {
@@ -455,6 +455,7 @@ export default function Home() {
 
     setPrefsLoaded(true)
   }, [runGeneration])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // ─── Sauvegarder les préférences ─────────────────────────────────────────────
   useEffect(() => {
@@ -900,7 +901,7 @@ export default function Home() {
             ) : (
               grids.map((g, i) => (
                 <CrosswordGrid
-                  key={i}
+                  key={`${i}-${g.seed}`}
                   data={g}
                   index={i}
                   interactive={interactive}
