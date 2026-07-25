@@ -99,12 +99,17 @@ souhaitez ajouter des fonctionnalités (analytics, etc.).
 1. **Choisir la difficulté** (1 = très facile → 10 = expert) via le curseur
 2. **Choisir un thème** (tous, animaux, géographie, sciences…) et le **nombre de grilles** (1 à 99)
 3. Cliquer sur **Générer** — les grilles apparaissent instantanément
-4. Par grille : **Voir la solution** (toggle à l'écran) ou **Régénérer** (sans toucher aux autres)
-5. Cliquer sur **Exporter en PDF** — ouvre la boîte d'impression du navigateur
+4. **Jouer directement dans le navigateur** : saisir les lettres dans les cases,
+   puis **Vérifier** (vert = correct, rouge = erreur) ou **Effacer**
+5. Par grille : **Voir la solution** (toggle), **Régénérer** (sans toucher aux autres),
+   **Partager** (lien copié, grille encodée dans l'URL) ou télécharger en **SVG**
+6. Cliquer sur **Exporter en PDF** — ouvre la boîte d'impression du navigateur
    (les solutions s'impriment séparément via **Imprimer les solutions**)
 
 Les lettres sont **masquées à l'écran et à l'impression** pour rendre les grilles jouables.
-Les préférences (difficulté, thème, nombre de grilles) sont conservées dans `localStorage`.
+Les préférences (difficulté, thème, nombre de grilles, mode sombre) sont conservées dans
+`localStorage`. L'application est installable en **PWA** et fonctionne hors-ligne
+(service worker). Un **mode sombre** est disponible via le bouton de l'en-tête.
 
 ---
 
@@ -153,10 +158,9 @@ Dans **Settings → Branches → Branch protection rules** pour `main` :
 Voir [TODO.md](TODO.md) pour la liste complète, priorisée en 3 niveaux.
 
 Points prioritaires :
-1. Mode interactif (saisie dans le navigateur)
-2. Tests d'intégration Playwright
-3. Mode sombre
-4. Partage de grille par URL
+1. Génération de grilles en anglais (banque de mots EN)
+2. Personnalisation : taille de cellule, police, couleurs
+3. Statistiques (nb de grilles générées, mots les plus utilisés)
 
 ---
 
