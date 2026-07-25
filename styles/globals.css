@@ -235,6 +235,26 @@ main {
 .empty-state h2 { font-size: 1.2rem; font-weight: 600; }
 .empty-state p  { font-size: .9rem; max-width: 280px; line-height: 1.5; }
 
+/* ─── Bannière d'erreur ─────────────────────────────────────── */
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  background: #fee2e2;
+  border: 1px solid var(--danger);
+  color: #991b1b;
+  border-radius: var(--radius);
+  padding: .75rem 1rem;
+  font-size: .85rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.error-banner svg { flex-shrink: 0; }
+
+/* ─── Solutions (impression séparée uniquement) ─────────────── */
+.solutions-section { display: none; }
+
 /* ─── Crossword grid card ───────────────────────────────────── */
 .crossword-card {
   background: var(--surface);
@@ -462,6 +482,13 @@ footer {
   .cell-letter { display: none; } /* cacher les lettres — c'est un jeu ! */
 
   .clue-item { font-size: .7rem; }
+
+  .error-banner { display: none !important; }
+
+  /* Mode "solutions" : imprimer uniquement les grilles résolues */
+  .app[data-print="solutions"] .crossword-card:not(.solution-card) { display: none; }
+  .app[data-print="solutions"] .solutions-section { display: block; }
+  .app[data-print="solutions"] .solution-card .cell-letter { display: flex; }
 
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }

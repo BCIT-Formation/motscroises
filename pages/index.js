@@ -4,9 +4,14 @@
  */
 
 import Head from 'next/head'
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { generateCrossword, getBoundingBox } from '../lib/crossword'
 import { getWordsForDifficulty, getGridSize, getWordCount } from '../lib/words'
+
+// Une grille avec moins de 3 mots placés est considérée comme ratée.
+const MIN_PLACED_WORDS = 3
+// Nombre de tirages de mots tentés avant d'abandonner une grille.
+const MAX_ATTEMPTS_PER_GRID = 5
 
 // ─── Labels de difficulté ──────────────────────────────────────────────────────
 const DIFF_LABELS = {
@@ -107,6 +112,55 @@ function CrosswordGrid({ data, index }) {
   )
 }
 
+// ─── Composant Solution ────────────────────────────────────────────────────────
+// Grille avec les lettres visibles, imprimable séparément des grilles à jouer.
+function SolutionGrid({ data, index }) {
+  const { grid, numbers, size } = data
+  const { minR, maxR, minC, maxC } = getBoundingBox(grid)
+
+  return (
+    <div className="crossword-card solution-card">
+      <div className="crossword-card-header">
+        <h2>Solution — Grille n°{index + 1}</h2>
+        <span className="meta">
+          Difficulté {data.difficulty} · {data.wordCount} mots · {size}×{size}
+        </span>
+      </div>
+
+      <div className="grid-wrapper">
+        <table className="crossword-grid" aria-label={`Solution de la grille ${index + 1}`}>
+          <tbody>
+            {Array.from({ length: maxR - minR + 1 }, (_, ri) => {
+              const r = ri + minR
+              return (
+                <tr key={r}>
+                  {Array.from({ length: maxC - minC + 1 }, (_, ci) => {
+                    const c = ci + minC
+                    const cell = grid[r][c]
+                    const num  = numbers[r][c]
+                    const isBlack = cell === null
+
+                    return (
+                      <td key={c} className={isBlack ? 'black' : 'white'}>
+                        {!isBlack && (
+                          <>
+                            {num && <span className="cell-number">{num}</span>}
+                            <span className="cell-letter">{cell.letter}</span>
+                          </>
+                        )}
+                      </td>
+                    )
+                  })}
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
 // ─── Page principale ───────────────────────────────────────────────────────────
 export default function Home() {
   const [difficulty,   setDifficulty]   = useState(5)
@@ -115,6 +169,8 @@ export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [toast,        setToast]        = useState(null)
   const [progress,     setProgress]     = useState(0)
+  const [error,        setError]        = useState(null)
+  const [printTarget,  setPrintTarget]  = useState('grids')
   const contentRef = useRef(null)
 
   // ─── Afficher un message temporaire ─────────────────────────────────────────
@@ -129,9 +185,11 @@ export default function Home() {
     setIsGenerating(true)
     setProgress(0)
     setGrids([])
+    setError(null)
 
     const count   = Math.min(99, Math.max(1, gridCount))
     const results = []
+    let   failed  = 0
 
     // Utiliser setTimeout pour ne pas bloquer le rendu entre chaque grille
     for (let i = 0; i < count; i++) {
@@ -139,21 +197,44 @@ export default function Home() {
 
       const size      = getGridSize(difficulty)
       const wordCount = getWordCount(difficulty)
-      const wordList  = getWordsForDifficulty(difficulty, wordCount + 5) // +5 pour marge
 
-      const result = generateCrossword(wordList, size)
-      results.push({
-        ...result,
-        difficulty,
-        wordCount: result.placedWords.length,
-      })
+      // Retenter avec un nouveau tirage de mots si trop peu sont placés
+      let result = null
+      for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_GRID; attempt++) {
+        const wordList  = getWordsForDifficulty(difficulty, wordCount + 5) // +5 pour marge
+        const candidate = generateCrossword(wordList, size)
+        if (candidate.placedWords.length >= MIN_PLACED_WORDS) {
+          result = candidate
+          break
+        }
+      }
+
+      if (result) {
+        results.push({
+          ...result,
+          difficulty,
+          wordCount: result.placedWords.length,
+        })
+      } else {
+        failed++
+      }
 
       setProgress(Math.round(((i + 1) / count) * 100))
     }
 
     setGrids(results)
     setIsGenerating(false)
-    showToast(`${count} grille${count > 1 ? 's' : ''} générée${count > 1 ? 's' : ''} !`)
+
+    if (failed > 0) {
+      setError(
+        results.length === 0
+          ? `Impossible de générer une grille : moins de ${MIN_PLACED_WORDS} mots ont pu être placés. Essayez une autre difficulté.`
+          : `${failed} grille${failed > 1 ? 's' : ''} sur ${count} n'${failed > 1 ? 'ont' : 'a'} pas pu être générée${failed > 1 ? 's' : ''} (moins de ${MIN_PLACED_WORDS} mots placés).`
+      )
+    }
+    if (results.length > 0) {
+      showToast(`${results.length} grille${results.length > 1 ? 's' : ''} générée${results.length > 1 ? 's' : ''} !`)
+    }
   }, [difficulty, gridCount, isGenerating, showToast])
 
   // ─── Export PDF via impression navigateur ────────────────────────────────────
@@ -164,6 +245,25 @@ export default function Home() {
     }
     window.print()
   }, [grids, showToast])
+
+  // ─── Impression séparée des solutions ────────────────────────────────────────
+  const handlePrintSolutions = useCallback(() => {
+    if (grids.length === 0) {
+      showToast('Générez d\'abord des grilles.')
+      return
+    }
+    setPrintTarget('solutions')
+  }, [grids, showToast])
+
+  // Attendre que le mode "solutions" soit rendu avant d'ouvrir l'impression
+  useEffect(() => {
+    if (printTarget !== 'solutions') return
+    const timer = setTimeout(() => {
+      window.print()
+      setPrintTarget('grids')
+    }, 50)
+    return () => clearTimeout(timer)
+  }, [printTarget])
 
   // ─── Contrôle du nombre de grilles ───────────────────────────────────────────
   const handleCountChange = (e) => {
@@ -180,7 +280,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="app">
+      <div className="app" data-print={printTarget}>
         {/* ── En-tête ── */}
         <header>
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -266,6 +366,19 @@ export default function Home() {
               Exporter en PDF ({grids.length})
             </button>
 
+            {/* Bouton solutions */}
+            <button
+              className="btn btn-secondary"
+              onClick={handlePrintSolutions}
+              disabled={grids.length === 0}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              Imprimer les solutions
+            </button>
+
             {grids.length > 0 && (
               <div className="stats">
                 {grids.length} grille{grids.length > 1 ? 's' : ''} · difficulté {difficulty} · prêtes à imprimer
@@ -284,6 +397,18 @@ export default function Home() {
 
           {/* ── Zone principale ── */}
           <div className="content" ref={contentRef}>
+            {/* Message d'erreur de génération */}
+            {error && (
+              <div className="error-banner" role="alert">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span>{error}</span>
+              </div>
+            )}
+
             {grids.length === 0 && !isGenerating ? (
               <div className="empty-state">
                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -298,13 +423,22 @@ export default function Home() {
                   puis cliquez sur <strong>Générer</strong>.
                 </p>
                 <p style={{ marginTop: '-.25rem' }}>
-                  Exportez ensuite en PDF pour l'impression.
+                  Exportez ensuite en PDF pour l&apos;impression.
                 </p>
               </div>
             ) : (
-              grids.map((g, i) => (
-                <CrosswordGrid key={i} data={g} index={i} />
-              ))
+              <>
+                {grids.map((g, i) => (
+                  <CrosswordGrid key={i} data={g} index={i} />
+                ))}
+
+                {/* Solutions — rendues uniquement pour l'impression séparée */}
+                <section className="solutions-section" aria-hidden="true">
+                  {grids.map((g, i) => (
+                    <SolutionGrid key={i} data={g} index={i} />
+                  ))}
+                </section>
+              </>
             )}
           </div>
         </main>
