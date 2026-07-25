@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0](https://github.com/BCIT-Formation/motscroises/compare/v1.0.0...v1.1.0) (2026-07-25)
+
+
+### Features
+
+* add e2e tests, dark mode, interactive grid, sharing, EN words, SVG, stats, PWA ([4ec9e36](https://github.com/BCIT-Formation/motscroises/commit/4ec9e362a4ec01e5ac4a812dc6cd45c7f2786586))
+* implement 10 TODO items (tests, themes, solutions, word bank, prefs) ([430e933](https://github.com/BCIT-Formation/motscroises/commit/430e9337534f08ac04f1e80bcc135daef4ee3768))
+* implement 10 TODO items (tests, themes, solutions, word bank, prefs) ([68d1eae](https://github.com/BCIT-Formation/motscroises/commit/68d1eae8bfeed8698a1ca5ae1dc29d41e83aed46))
+
+
+### Bug Fixes
+
+* adapt to Next 16 / ESLint 9 after rebase on main ([b65b2b4](https://github.com/BCIT-Formation/motscroises/commit/b65b2b49bade51885a0860d2335c0f0ee48931ad))
+
 ## 1.0.0 (2026-07-25)
 
 
