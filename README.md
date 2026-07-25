@@ -1,5 +1,14 @@
 # Mots Croisés — Générateur de grilles
 
+<!-- workflow-badges:start -->
+
+[![CI](https://github.com/BCIT-Formation/motscroises/actions/workflows/ci.yml/badge.svg)](https://github.com/BCIT-Formation/motscroises/actions/workflows/ci.yml)
+[![PR Check](https://github.com/BCIT-Formation/motscroises/actions/workflows/pr-check.yml/badge.svg)](https://github.com/BCIT-Formation/motscroises/actions/workflows/pr-check.yml)
+[![Release](https://github.com/BCIT-Formation/motscroises/actions/workflows/release.yml/badge.svg)](https://github.com/BCIT-Formation/motscroises/actions/workflows/release.yml)
+[![Security Audit](https://github.com/BCIT-Formation/motscroises/actions/workflows/security.yml/badge.svg)](https://github.com/BCIT-Formation/motscroises/actions/workflows/security.yml)
+
+<!-- workflow-badges:end -->
+
 [![CI](https://github.com/BCIT-Formation/motscroises/actions/workflows/ci.yml/badge.svg)](https://github.com/BCIT-Formation/motscroises/actions/workflows/ci.yml)
 [![Deploy](https://img.shields.io/badge/Vercel-deployed-brightgreen?logo=vercel)](https://motscroises.vercel.app)
 
