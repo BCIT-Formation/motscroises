@@ -28,7 +28,7 @@ le premier chargement. Exportez de 1 à 99 grilles directement en PDF pour impre
 motscroises/
 ├── lib/
 │   ├── crossword.js    # Algorithme de génération (backtracking + scoring)
-│   └── words.js        # Banque de ~150 mots français + indices, niveaux 1-10
+│   └── words.js        # Banque de 500+ mots français + indices, niveaux 1-10
 ├── pages/
 │   ├── _app.js         # Wrapper Next.js (import CSS global)
 │   └── index.js        # Page unique — UI complète (React)
@@ -113,6 +113,8 @@ Les lettres sont **masquées à l'impression** pour rendre les grilles jouables.
 4. Chaque mot suivant cherche toutes les intersections possibles avec les mots existants
    et choisit le placement maximisant les croisements.
 5. Les cases sont numérotées selon les règles standard des mots croisés.
+6. Si moins de 3 mots sont placés, un nouveau tirage de mots est tenté (jusqu'à 5 fois),
+   puis un message d'erreur est affiché plutôt qu'une grille inutilisable.
 
 ---
 
@@ -147,10 +149,10 @@ Dans **Settings → Branches → Branch protection rules** pour `main` :
 Voir [TODO.md](TODO.md) pour la liste complète, priorisée en 3 niveaux.
 
 Points prioritaires :
-1. Banque de mots enrichie (500+ entrées)
-2. Grille de solutions imprimable
+1. Re-génération d'une seule grille sans tout regénérer
+2. Mode « voir la solution » dans le navigateur (toggle)
 3. Mode interactif (saisie dans le navigateur)
-4. Tests automatisés complets
+4. Tests d'intégration Playwright
 
 ---
 

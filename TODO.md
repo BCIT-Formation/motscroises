@@ -2,14 +2,14 @@
 
 ## 🔴 Critique
 
-- [ ] Ajouter des tests unitaires pour `lib/crossword.js` (placement, numérotation, bounding box)
-- [ ] Ajouter des tests unitaires pour `lib/words.js` (filtrage par difficulté)
-- [ ] Gérer le cas où trop peu de mots sont placés (< 3) → afficher un message d'erreur
+- [x] Ajouter des tests unitaires pour `lib/crossword.js` (placement, numérotation, bounding box)
+- [x] Ajouter des tests unitaires pour `lib/words.js` (filtrage par difficulté)
+- [x] Gérer le cas où trop peu de mots sont placés (< 3) → afficher un message d'erreur
 
 ## 🟠 Important
 
-- [ ] Enrichir la banque de mots (objectif : 500+ mots avec indices variés)
-- [ ] Ajouter une grille de solutions (imprimable séparément)
+- [x] Enrichir la banque de mots (objectif : 500+ mots avec indices variés)
+- [x] Ajouter une grille de solutions (imprimable séparément)
 - [ ] Permettre de re-générer une seule grille sans tout regénérer
 - [ ] Ajouter un mode "voir la solution" dans le navigateur (toggle)
 - [ ] Améliorer l'algorithme : s'assurer que la grille est connexe (toutes les lettres liées)
