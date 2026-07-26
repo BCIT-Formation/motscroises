@@ -341,11 +341,15 @@ export default function Home() {
   const [stats,          setStats]          = useState(() => emptyStats())
   const [prefsLoaded,    setPrefsLoaded]    = useState(false)
   const contentRef = useRef(null)
+  const toastTimer = useRef(null)
 
   // ─── Afficher un message temporaire ─────────────────────────────────────────
   const showToast = useCallback((msg) => {
     setToast(msg)
-    setTimeout(() => setToast(null), 3000)
+    // Annuler le minuteur précédent : sans cela, un ancien toast encore
+    // affiché ferait disparaître prématurément le nouveau message.
+    clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToast(null), 3000)
   }, [])
 
   // ─── Cœur de la génération (piloté par des graines explicites) ──────────────
