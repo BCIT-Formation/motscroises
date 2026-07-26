@@ -1,6 +1,6 @@
 {
   "name": "motscroises",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
+    "test:watch": "vitest",
     "test:e2e": "playwright test"
   },
   "dependencies": {
@@ -16,9 +17,9 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.0",
+    "@playwright/test": "1.62.0",
     "eslint": "9.39.5",
     "eslint-config-next": "16.2.11",
-    "vitest": "^4.1.10"
+    "vitest": "2.1.9"
   }
 }

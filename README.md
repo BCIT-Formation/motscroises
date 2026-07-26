@@ -1,5 +1,14 @@
 # Mots Croisés — Générateur de grilles
 
+<!-- workflow-badges:start -->
+
+[![CI](https://github.com/BCIT-Formation/motscroises/actions/workflows/ci.yml/badge.svg)](https://github.com/BCIT-Formation/motscroises/actions/workflows/ci.yml)
+[![PR Check](https://github.com/BCIT-Formation/motscroises/actions/workflows/pr-check.yml/badge.svg)](https://github.com/BCIT-Formation/motscroises/actions/workflows/pr-check.yml)
+[![Release](https://github.com/BCIT-Formation/motscroises/actions/workflows/release.yml/badge.svg)](https://github.com/BCIT-Formation/motscroises/actions/workflows/release.yml)
+[![Security Audit](https://github.com/BCIT-Formation/motscroises/actions/workflows/security.yml/badge.svg)](https://github.com/BCIT-Formation/motscroises/actions/workflows/security.yml)
+
+<!-- workflow-badges:end -->
+
 [![CI](https://github.com/BCIT-Formation/motscroises/actions/workflows/ci.yml/badge.svg)](https://github.com/BCIT-Formation/motscroises/actions/workflows/ci.yml)
 [![Deploy](https://img.shields.io/badge/Vercel-deployed-brightgreen?logo=vercel)](https://motscroises.vercel.app)
 
@@ -16,6 +25,14 @@ le premier chargement. Exportez de 1 à 99 grilles directement en PDF pour impre
 | Niveaux 1 à 10 | De « Très facile » (mots courants, grille 10×10) à « Expert » (15×15, vocabulaire avancé) |
 | 1 à 99 grilles | Toutes générées en une seule session, barre de progression |
 | Export PDF | Via `window.print()` + CSS `@media print` — aucune dépendance |
+| Export SVG | Un fichier vectoriel par grille, avec ou sans solutions |
+| Deux langues | Banques de mots française (500+) et anglaise (170+) |
+| Mode interactif | Remplissage dans le navigateur avec vérification des lettres |
+| Partage par URL | Graine encodée dans le lien : même lien, même grille |
+| Mode sombre | Bascule manuelle, suit le réglage système par défaut |
+| Personnalisation | Taille des cases, police des lettres, couleur d'accent |
+| Statistiques | Grilles générées et mots les plus utilisés (localStorage) |
+| PWA | Installable sur mobile, fonctionne hors ligne (service worker) |
 | Hors-ligne | Fonctionne sans connexion après le premier chargement de la page |
 | Aucune dépendance UI | CSS natif, pas de framework de style externe |
 
@@ -27,12 +44,21 @@ le premier chargement. Exportez de 1 à 99 grilles directement en PDF pour impre
 motscroises/
 ├── lib/
 │   ├── crossword.js    # Algorithme de génération (placement glouton + scoring d'intersections)
-│   └── words.js        # Banque de 500+ mots français + indices, niveaux 1-10
+│   ├── words.js        # Banque de 500+ mots français + indices, niveaux 1 à 9, thèmes
+│   ├── words-en.js     # Banque de mots anglais (mêmes thèmes)
+│   ├── random.js       # PRNG déterministe (partage de grille par URL)
+│   ├── svg.js          # Export SVG des grilles
+│   └── stats.js        # Statistiques d'utilisation (localStorage)
 ├── pages/
-│   ├── _app.js         # Wrapper Next.js (import CSS global)
+│   ├── _app.js         # Wrapper Next.js (CSS global + service worker PWA)
 │   └── index.js        # Page unique — UI complète (React)
+├── public/
+│   ├── manifest.json   # Manifeste PWA
+│   └── sw.js           # Service worker (cache hors ligne)
 ├── styles/
-│   └── globals.css     # Styles + @media print pour export PDF
+│   └── globals.css     # Styles + mode sombre + @media print pour export PDF
+├── tests/              # Tests unitaires (vitest)
+├── e2e/                # Tests d'intégration (Playwright)
 ├── .github/
 │   ├── dependabot.yml
 │   └── workflows/      # CI, release, PR check, security scan
@@ -101,19 +127,11 @@ souhaitez ajouter des fonctionnalités (analytics, etc.).
 ## Utilisation
 
 1. **Choisir la difficulté** (1 = très facile → 10 = expert) via le curseur
-2. **Choisir un thème** (tous, animaux, géographie, sciences…) et le **nombre de grilles** (1 à 99)
+2. **Choisir le nombre de grilles** (1 à 99)
 3. Cliquer sur **Générer** — les grilles apparaissent instantanément
-4. **Jouer directement dans le navigateur** : saisir les lettres dans les cases,
-   puis **Vérifier** (vert = correct, rouge = erreur) ou **Effacer**
-5. Par grille : **Voir la solution** (toggle), **Régénérer** (sans toucher aux autres),
-   **Partager** (lien copié, grille encodée dans l'URL) ou télécharger en **SVG**
-6. Cliquer sur **Exporter en PDF** — ouvre la boîte d'impression du navigateur
-   (les solutions s'impriment séparément via **Imprimer les solutions**)
+4. Cliquer sur **Exporter en PDF** — ouvre la boîte d'impression du navigateur
 
-Les lettres sont **masquées à l'écran et à l'impression** pour rendre les grilles jouables.
-Les préférences (difficulté, thème, nombre de grilles, mode sombre) sont conservées dans
-`localStorage`. L'application est installable en **PWA** et fonctionne hors-ligne
-(service worker). Un **mode sombre** est disponible via le bouton de l'en-tête.
+Les lettres sont **masquées à l'impression** pour rendre les grilles jouables.
 
 ---
 
@@ -125,9 +143,6 @@ Les préférences (difficulté, thème, nombre de grilles, mode sombre) sont con
 4. Chaque mot suivant cherche toutes les intersections possibles avec les mots existants
    et choisit le placement maximisant les croisements.
 5. Les cases sont numérotées selon les règles standard des mots croisés.
-6. Si moins de 3 mots sont placés ou si la grille n'est pas connexe (vérifiée par
-   parcours en largeur), un nouveau tirage de mots est tenté (jusqu'à 5 fois),
-   puis un message d'erreur est affiché plutôt qu'une grille inutilisable.
 
 ---
 
@@ -162,9 +177,10 @@ Dans **Settings → Branches → Branch protection rules** pour `main` :
 Voir [TODO.md](TODO.md) pour la liste complète, priorisée en 3 niveaux.
 
 Points prioritaires :
-1. Génération de grilles en anglais (banque de mots EN)
-2. Personnalisation : taille de cellule, police, couleurs
-3. Statistiques (nb de grilles générées, mots les plus utilisés)
+1. Banque de mots enrichie (500+ entrées)
+2. Grille de solutions imprimable
+3. Mode interactif (saisie dans le navigateur)
+4. Tests automatisés complets
 
 ---
 

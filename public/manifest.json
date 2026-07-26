@@ -1,7 +1,7 @@
 {
   "name": "Mots Croisés – Générateur",
   "short_name": "Mots Croisés",
-  "description": "Générateur de grilles de mots croisés français, 100 % côté client et hors-ligne.",
+  "description": "Générateur de grilles de mots croisés — 100 % local, sans internet",
   "lang": "fr",
   "start_url": "/",
   "scope": "/",
@@ -14,12 +14,6 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
-    },
-    {
-      "src": "/icon-maskable.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
     }
   ]
 }

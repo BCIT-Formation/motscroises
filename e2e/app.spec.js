@@ -1,133 +1,93 @@
 /**
- * Tests d'intégration — parcours principal : générer → afficher → imprimer,
- * plus les interactions par grille (solution, saisie, partage, mode sombre).
+ * Tests d'intégration — parcours complet : générer → afficher → imprimer,
+ * plus les fonctionnalités clés (solutions, partage, mode interactif, sombre).
  */
-
-const { test, expect } = require('@playwright/test')
-
-// window.print est remplacé par un compteur : on vérifie le déclenchement
-// de l'impression sans ouvrir la boîte de dialogue native.
-test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => {
-    window.__printCount = 0
-    window.print = () => { window.__printCount++ }
-  })
-  await page.goto('/')
-})
+const { test, expect } = require('@playwright/test');
 
 async function generate(page) {
-  await page.getByRole('button', { name: /Générer/ }).click()
-  await expect(page.locator('.crossword-card:not(.solution-card)').first()).toBeVisible()
+  await page.goto('/');
+  await page.getByRole('button', { name: /Générer/ }).click();
+  await expect(page.locator('.crossword-card').first()).toBeVisible();
 }
 
 test('génère et affiche une grille avec ses indices', async ({ page }) => {
-  await expect(page.getByText('Aucune grille générée')).toBeVisible()
+  await generate(page);
 
-  await generate(page)
+  // La grille contient des cases blanches et des indices
+  await expect(page.locator('.crossword-grid td.white').first()).toBeVisible();
+  await expect(page.locator('.clue-item').first()).toBeVisible();
 
-  const card = page.locator('.crossword-card:not(.solution-card)').first()
-  await expect(card.getByRole('heading', { name: 'Grille n°1' })).toBeVisible()
-  // La grille contient des cases blanches numérotées
-  expect(await card.locator('td.white').count()).toBeGreaterThan(0)
-  await expect(card.locator('.cell-number').first()).toBeVisible()
-  // Au moins une liste d'indices est affichée
-  expect(await card.locator('.clue-item').count()).toBeGreaterThanOrEqual(3)
-})
+  // Les lettres sont masquées à l'écran (c'est un jeu)
+  await expect(page.locator('.content .cell-letter').first()).toBeHidden();
+});
 
-test('exporte les grilles et les solutions via l\'impression', async ({ page }) => {
-  // Impossible d'imprimer avant de générer
-  await expect(page.getByRole('button', { name: /Exporter en PDF/ })).toBeDisabled()
+test('le bouton « Voir les solutions » révèle puis masque les lettres', async ({ page }) => {
+  await generate(page);
 
-  await generate(page)
+  await page.getByRole('button', { name: 'Voir les solutions' }).click();
+  await expect(page.locator('.content .cell-letter').first()).toBeVisible();
 
-  await page.getByRole('button', { name: /Exporter en PDF/ }).click()
-  await expect.poll(() => page.evaluate(() => window.__printCount)).toBe(1)
+  await page.getByRole('button', { name: 'Masquer les solutions' }).click();
+  await expect(page.locator('.content .cell-letter').first()).toBeHidden();
+});
 
-  await page.getByRole('button', { name: 'Imprimer les solutions' }).click()
-  await expect.poll(() => page.evaluate(() => window.__printCount)).toBe(2)
-})
+test('le bouton PDF déclenche l\'impression du navigateur', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__printed = false;
+    window.print = () => { window.__printed = true; };
+  });
+  await generate(page);
 
-test('le toggle « voir la solution » révèle puis masque les lettres', async ({ page }) => {
-  await generate(page)
-  const card = page.locator('.crossword-card:not(.solution-card)').first()
+  await page.getByRole('button', { name: /Exporter en PDF/ }).click();
+  expect(await page.evaluate(() => window.__printed)).toBe(true);
+});
 
-  // Par défaut : cases jouables (saisie), pas de lettres visibles
-  await expect(card.locator('.cell-letter')).toHaveCount(0)
-  expect(await card.locator('.cell-input').count()).toBeGreaterThan(0)
+test('une URL de partage régénère la même grille', async ({ page }) => {
+  const shareURL = '/?d=3&t=tous&l=fr&s=424242';
 
-  await card.getByRole('button', { name: 'Voir la solution' }).click()
-  expect(await card.locator('.cell-letter').count()).toBeGreaterThan(0)
+  await page.goto(shareURL);
+  await expect(page.locator('.crossword-card').first()).toBeVisible();
+  const first = await page.locator('.crossword-grid').first().textContent();
 
-  await card.getByRole('button', { name: 'Masquer la solution' }).click()
-  await expect(card.locator('.cell-letter')).toHaveCount(0)
-})
+  await page.goto(shareURL);
+  await expect(page.locator('.crossword-card').first()).toBeVisible();
+  const second = await page.locator('.crossword-grid').first().textContent();
 
-test('la saisie interactive se vérifie (vert si correct, rouge sinon)', async ({ page }) => {
-  await generate(page)
-  const card = page.locator('.crossword-card:not(.solution-card)').first()
+  expect(first).toBe(second);
+  expect(first.length).toBeGreaterThan(0);
+});
 
-  // Lire la bonne lettre de la première case via la grille solution cachée
-  const solutionLetter = await page
-    .locator('.solution-card')
-    .first()
-    .locator('.cell-letter')
-    .first()
-    .textContent()
+test('le mode interactif permet de saisir et vérifier des lettres', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('Mode interactif (remplir dans le navigateur)').check();
+  await page.getByRole('button', { name: /Générer/ }).click();
+  await expect(page.locator('.crossword-card').first()).toBeVisible();
 
-  const firstInput = card.locator('.cell-input').first()
-  await firstInput.fill(solutionLetter)
-  const secondInput = card.locator('.cell-input').nth(1)
-  await secondInput.fill(solutionLetter === 'Z' ? 'Y' : 'Z')
+  // Saisie : la lettre est mise en majuscule
+  const input = page.locator('.cell-input').first();
+  await input.fill('a');
+  await expect(input).toHaveValue('A');
 
-  await card.getByRole('button', { name: 'Vérifier' }).click()
-  expect(await card.locator('td.cell-ok').count()).toBeGreaterThanOrEqual(1)
-  // La seconde lettre volontairement fausse peut, par hasard, être juste
-  // seulement si la case attendait exactement cette lettre : on vérifie
-  // surtout que la vérification a marqué les cases remplies.
-  expect(await card.locator('td.cell-ok, td.cell-ko').count()).toBe(2)
+  // Vérification : un score s'affiche
+  await page.getByRole('button', { name: /Vérifier/ }).first().click();
+  await expect(page.locator('.verify-result').first()).toContainText('lettres');
+});
 
-  await card.getByRole('button', { name: 'Effacer' }).click()
-  await expect(card.locator('td.cell-ok, td.cell-ko')).toHaveCount(0)
-})
+test('le bouton de mode sombre bascule le thème', async ({ page }) => {
+  await page.goto('/');
+  const html = page.locator('html');
+  await expect(html).toHaveAttribute('data-theme', /light|dark/);
+  const before = await html.getAttribute('data-theme');
 
-test('régénère une seule grille sans toucher aux autres', async ({ page }) => {
-  await page.getByLabel('Nombre de grilles').fill('2')
-  await generate(page)
-  const cards = page.locator('.crossword-card:not(.solution-card)')
-  await expect(cards).toHaveCount(2)
+  await page.getByRole('button', { name: 'Basculer le mode sombre' }).click();
+  await expect(html).toHaveAttribute('data-theme', before === 'dark' ? 'light' : 'dark');
+});
 
-  await cards.first().getByRole('button', { name: 'Régénérer' }).click()
-  await expect(page.locator('.toast')).toContainText('Grille n°1 régénérée')
-  await expect(cards).toHaveCount(2)
-})
+test('l\'export SVG télécharge un fichier par grille', async ({ page }) => {
+  await generate(page);
 
-test('le mode sombre se bascule et persiste', async ({ page }) => {
-  const html = page.locator('html')
-  const initial = await html.getAttribute('data-theme')
-
-  await page.getByRole('button', { name: /mode (sombre|clair)/i }).click()
-  const flipped = initial === 'dark' ? 'light' : 'dark'
-  await expect(html).toHaveAttribute('data-theme', flipped)
-
-  await page.reload()
-  await expect(html).toHaveAttribute('data-theme', flipped)
-})
-
-test('une grille peut être partagée puis rechargée par URL', async ({ page, context }) => {
-  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
-  await generate(page)
-
-  await page
-    .locator('.crossword-card:not(.solution-card)')
-    .first()
-    .getByRole('button', { name: 'Partager' })
-    .click()
-  await expect(page.locator('.toast')).toContainText('copié')
-
-  const url = await page.evaluate(() => navigator.clipboard.readText())
-  expect(url).toContain('?grille=')
-
-  await page.goto(url)
-  await expect(page.locator('.crossword-card:not(.solution-card)')).toBeVisible()
-  await expect(page.locator('.toast')).toContainText('Grille partagée chargée')
-})
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: /Exporter en SVG/ }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('mots-croises-grille-1.svg');
+});

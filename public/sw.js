@@ -1,13 +1,17 @@
 /**
- * Service worker — Mots Croisés (PWA)
- * Stratégie stale-while-revalidate : sert le cache immédiatement quand il
- * existe, puis le rafraîchit en arrière-plan. L'application reste donc
- * utilisable entièrement hors-ligne après la première visite.
+ * Service worker — Mots Croisés (PWA).
+ * Stratégie « cache d'abord » avec mise en cache au fil de l'eau :
+ * l'application est 100 % statique, tout peut être servi hors ligne
+ * après la première visite.
  */
 
 const CACHE_NAME = 'motscroises-v1';
+const PRECACHE = ['/', '/manifest.json', '/icon.svg'];
 
-self.addEventListener('install', () => {
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE))
+  );
   self.skipWaiting();
 });
 
@@ -28,15 +32,16 @@ self.addEventListener('fetch', (event) => {
   if (new URL(request.url).origin !== self.location.origin) return;
 
   event.respondWith(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      const cached = await cache.match(request);
-      const network = fetch(request)
-        .then((response) => {
-          if (response.ok) cache.put(request, response.clone());
+    caches.match(request).then(
+      (cached) =>
+        cached ||
+        fetch(request).then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
           return response;
         })
-        .catch(() => cached);
-      return cached || network;
-    })
+    )
   );
 });

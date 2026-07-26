@@ -22,8 +22,8 @@
 - [x] Mode sombre
 - [x] Grille interactive (remplissage dans le navigateur, vérification)
 - [x] Partage de grille par URL (état encodé en query string)
-- [ ] Génération de grilles en anglais (banque de mots EN)
-- [ ] Personnalisation : taille de cellule, police, couleurs
+- [x] Génération de grilles en anglais (banque de mots EN)
+- [x] Personnalisation : taille de cellule, police, couleurs
 - [x] Export SVG en plus du PDF
-- [ ] Statistiques (nb de grilles générées, mots les plus utilisés)
+- [x] Statistiques (nb de grilles générées, mots les plus utilisés)
 - [x] PWA (Progressive Web App) pour installation sur mobile
