@@ -1,8 +1,9 @@
 /**
  * Service worker — Mots Croisés (PWA).
- * Stratégie « cache d'abord » avec mise en cache au fil de l'eau :
- * l'application est 100 % statique, tout peut être servi hors ligne
- * après la première visite.
+ * Stratégie : « réseau d'abord » pour les navigations (les déploiements
+ * atteignent ainsi les clients), « cache d'abord » au fil de l'eau pour les
+ * ressources statiques. L'application est 100 % statique, tout peut être
+ * servi hors ligne après la première visite.
  */
 
 const CACHE_NAME = 'motscroises-v1';
@@ -30,6 +31,25 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
   if (new URL(request.url).origin !== self.location.origin) return;
+
+  // Navigations : réseau d'abord, sinon les clients resteraient bloqués sur
+  // l'ancienne version après un déploiement (le cache n'est jamais invalidé).
+  // Hors ligne, repli sur la coquille en cache, avec ignoreSearch pour que
+  // les liens de partage (/?s=…) fonctionnent aussi sans réseau.
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request, { ignoreSearch: true }))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(request).then(
