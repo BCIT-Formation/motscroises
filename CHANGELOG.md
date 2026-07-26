@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0](https://github.com/BCIT-Formation/motscroises/compare/v1.1.0...v1.2.0) (2026-07-26)
+
+
+### Features
+
+* tests unitaires, gestion d'erreur de génération, banque 500+ mots et solutions imprimables ([#14](https://github.com/BCIT-Formation/motscroises/issues/14)) ([3f1ca5b](https://github.com/BCIT-Formation/motscroises/commit/3f1ca5b6911957213282654f275da1e08a194e4d))
+
 ## [1.1.0](https://github.com/BCIT-Formation/motscroises/compare/v1.0.0...v1.1.0) (2026-07-25)
 
 
